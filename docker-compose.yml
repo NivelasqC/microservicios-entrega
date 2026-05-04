@@ -1,0 +1,16 @@
+services:
+  citas-medicas:
+    build: ./entrega-citas-medicas/citas-medicas-semana3
+    container_name: citas-medicas
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@host.docker.internal:1521/XEPDB1
+
+  reservas-hotel:
+    build: ./entrega-reservas-hotel/reservas-hotel
+    container_name: reservas-hotel
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@host.docker.internal:1521/XEPDB1

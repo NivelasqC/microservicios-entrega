@@ -2,9 +2,14 @@ package com.example.reservashotel.controller;
 
 import com.example.reservashotel.model.ReservaHotel;
 import com.example.reservashotel.service.ReservaHotelService;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -17,13 +22,24 @@ public class ReservaHotelController {
     }
 
     @GetMapping
-    public List<ReservaHotel> obtenerTodas() {
-        return service.obtenerTodas();
+    public CollectionModel<EntityModel<ReservaHotel>> obtenerTodas() {
+        List<EntityModel<ReservaHotel>> reservas = service.obtenerTodas().stream()
+                .map(reserva -> EntityModel.of(reserva,
+                        linkTo(methodOn(ReservaHotelController.class).obtenerPorId(reserva.getId())).withSelfRel(),
+                        linkTo(methodOn(ReservaHotelController.class).obtenerTodas()).withRel("todas")))
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(reservas,
+                linkTo(methodOn(ReservaHotelController.class).obtenerTodas()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public ReservaHotel obtenerPorId(@PathVariable Long id) {
-        return service.obtenerPorId(id);
+    public EntityModel<ReservaHotel> obtenerPorId(@PathVariable Long id) {
+        ReservaHotel reserva = service.obtenerPorId(id);
+
+        return EntityModel.of(reserva,
+                linkTo(methodOn(ReservaHotelController.class).obtenerPorId(id)).withSelfRel(),
+                linkTo(methodOn(ReservaHotelController.class).obtenerTodas()).withRel("todas"));
     }
 
     @GetMapping("/estado/{estado}")
@@ -42,13 +58,21 @@ public class ReservaHotelController {
     }
 
     @PostMapping
-    public ReservaHotel crear(@RequestBody ReservaHotel reserva) {
-        return service.crear(reserva);
+    public EntityModel<ReservaHotel> crear(@RequestBody ReservaHotel reserva) {
+        ReservaHotel nuevaReserva = service.crear(reserva);
+
+        return EntityModel.of(nuevaReserva,
+                linkTo(methodOn(ReservaHotelController.class).obtenerPorId(nuevaReserva.getId())).withSelfRel(),
+                linkTo(methodOn(ReservaHotelController.class).obtenerTodas()).withRel("todas"));
     }
 
     @PutMapping("/{id}")
-    public ReservaHotel actualizar(@PathVariable Long id, @RequestBody ReservaHotel reserva) {
-        return service.actualizar(id, reserva);
+    public EntityModel<ReservaHotel> actualizar(@PathVariable Long id, @RequestBody ReservaHotel reserva) {
+        ReservaHotel reservaActualizada = service.actualizar(id, reserva);
+
+        return EntityModel.of(reservaActualizada,
+                linkTo(methodOn(ReservaHotelController.class).obtenerPorId(id)).withSelfRel(),
+                linkTo(methodOn(ReservaHotelController.class).obtenerTodas()).withRel("todas"));
     }
 
     @DeleteMapping("/{id}")
